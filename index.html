@@ -4,40 +4,29 @@
         <title>Home</title>
         <meta charset="utf-8"/>
 
-        <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons"
-              integrity="sha384-OD2DtC7sZ2EFLp6kdN9SU+1eghlvry4FnhykctCA7oRBwc0o1eLLjsKHcVqlVhYp"
-              crossorigin="anonymous">
-        <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.amber-blue.min.css"
-              integrity="sha384-hAsdKamgwaJiRPPj7Mz6HbsCXz/KAxlBgaHvjaiW7/r8lsdq4MgnSnlol+4DsKSE"
-              crossorigin="anonymous">
+        <link rel="stylesheet" href="vendored/material.icons.css">
+        <link rel="stylesheet" href="vendored/material.amber-blue.min.css">
 
-        <script async defer src="https://code.getmdl.io/1.3.0/material.min.js"
-                integrity="sha384-KxJ0gpu9LJdUtdV6oe5/l3PSF37awRaWGFhnKt8hq6vS3/Wlzy1YPuJzIwg/ljkW"
-                crossorigin="anonymous"></script>
+        <script async defer src="vendored/material.min.js"></script>
     </head>
     <body>
         <h3>College Mail Analyzer</h3>
 
-        <!--Add buttons to initiate auth sequence and sign out-->
+        <pre id="errorPre"></pre>
+
         <button id="authorizeButton" style="display: none;">Authorize</button>
         <button id="signoutButton" style="display: none;">Sign Out</button>
 
-        <pre id="errorPre"></pre>
         <table id="resultsTable">
             <thead></thead>
             <tbody></tbody>
         </table>
 
-        <script src="https://code.jquery.com/jquery-3.4.1.min.js"
-                integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
-                crossorigin="anonymous"></script>
+        <script src="vendored/jquery-3.4.1.min.js"></script>
         <script src="oauth.js"></script>
         <script src="index.js"></script>
-        <script async defer src="https://apis.google.com/js/api.js"
-                integrity="sha384-hY4nff40PdnSZAj2o7+aB5Tj8qQToEM6mDRU5N3Q6xJaYniOWfDUbf/w19CXtmkT"
-                crossorigin="anonymous"
+        <script async defer src="vendored/gapi.js"
                 onload="this.onload=function(){};handleClientLoad()"
                 onreadystatechange="if (this.readyState === 'complete') this.onload()"></script>
     </body>
 </html>
-
