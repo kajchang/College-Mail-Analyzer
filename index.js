@@ -6,6 +6,8 @@ const signoutButton = $('#signoutButton');
 const errorPre = $('#errorPre');
 const resultsTable = $('#resultsTable');
 
+let allMessages = [];
+
 function initUI() {
     // Listen for sign-in state changes.
     gapi.auth2.getAuthInstance().isSignedIn.listen(updateSigninStatus);
@@ -20,7 +22,7 @@ function updateSigninStatus(isSignedIn) {
     if (isSignedIn) {
         authorizeButton.hide();
         signoutButton.show();
-        insertResultRow(METADATA_HEADERS, true);
+        allMessages = [];
         listMessages();
     } else {
         authorizeButton.show();
@@ -76,25 +78,17 @@ function batchGetMessageInfo(messages) {
     return batch;
 }
 
-function listMessages(pageToken) {
-    if (!this.fetched) {
-        this.fetched = [];
-    }
-    if (this.fetched.includes(pageToken)) {
-        return;
-    }
-    this.fetched.push(pageToken);
+function listMessages(pageToken, root=true) {
     console.log('Fetching ' + pageToken);
     gapi.client.gmail.users.messages.list({
         userId: 'me',
-        q: '{from: college from: university from: admissions} AND {from:.org from:.edu} -from:collegeboard.org -from:summer',
+        q: '{from: college from: university from: admissions} AND {from:.org from:.edu} -from:collegeboard.org -from:summer after:12/30/18',
         maxResults: 200,
         pageToken
     })
         .then(response => {
             const messages = response.result.messages;
-            console.log('Received ' + messages.length + ' Messages');
-            if (response.result.nextPageToken) {
+            if (response.result.nextPageToken && root) {
                 setTimeout(() => listMessages(response.result.nextPageToken), 2500);
             }
             return batchGetMessageInfo(messages);
@@ -102,9 +96,14 @@ function listMessages(pageToken) {
         .then(response => {
             const messages = Object.values(response.result);
             if (!messages.every(message => message.status === 200)) {
-                return setTimeout(() => listMessages(pageToken), 5000);
+                return setTimeout(() => listMessages(pageToken, false), 5000);
             }
-            for (let message of messages) {
+            console.log('Received ' + messages.length + ' Messages');
+            allMessages.push(...messages);
+            allMessages = allMessages.sort((a, b) => +new Date(b.result.payload.headers.find(header => header.name === 'Date').value) - +new Date(a.result.payload.headers.find(header => header.name === 'Date').value));
+            clearResultsTable();
+            insertResultRow(METADATA_HEADERS, true);
+            for (let message of allMessages) {
                 insertResultRow(message.result.payload.headers
                     .sort((a, b) => METADATA_HEADERS.indexOf(a.name) - METADATA_HEADERS.indexOf(b.name))
                     .map(header => header.value));
@@ -112,6 +111,6 @@ function listMessages(pageToken) {
         })
         .catch(error => {
             handleError(error);
-            setTimeout(() => listMessages(pageToken), 5000);
+            setTimeout(() => listMessages(pageToken, false), 5000);
         });
 }
