@@ -7,21 +7,41 @@
 
         <link rel="stylesheet" href="vendored/material.icons.css">
         <link rel="stylesheet" href="vendored/material.amber-blue.min.css">
+        <link rel="stylesheet" href="index.css">
 
         <script async defer src="vendored/material.min.js"></script>
     </head>
     <body>
-        <h3>College Mail Analyzer</h3>
+        <div class="mdl-layout mdl-js-layout">
+            <header class="mdl-layout__header mdl-layout__header--transparent">
+                <div class="mdl-layout__header-row">
+                    <span class="mdl-layout-title">College Mail Analyzer</span>
+                    <div class="mdl-layout-spacer"></div>
+                    <nav class="mdl-navigation">
+                        <button id="authorizeButton" class="mdl-button mdl-js-button mdl-button--raised" style="display: none;">Authorize</button>
+                        <button id="signoutButton" class="mdl-button mdl-js-button mdl-button--raised" style="display: none;">Sign Out</button>
+                    </nav>
+                </div>
+            </header>
+            <main class="mdl-layout__content">
+                <pre id="errorPre"></pre>
 
-        <pre id="errorPre"></pre>
+                <table id="resultsTable" class="mdl-data-table mdl-js-data-table">
+                    <thead></thead>
+                    <tbody></tbody>
+                </table>
 
-        <button id="authorizeButton" style="display: none;">Authorize</button>
-        <button id="signoutButton" style="display: none;">Sign Out</button>
-
-        <table id="resultsTable">
-            <thead></thead>
-            <tbody></tbody>
-        </table>
+                <div class="mdl-layout-spacer"></div>
+                <footer class="mdl-mini-footer">
+                    <div class="mdl-mini-footer__left-section">
+                        <div class="mdl-logo">College Mail Analyzer</div>
+                        <ul class="mdl-mini-footer__link-list">
+                            <li><a href="privacy-policy.html" target="_blank" rel="noopener">Privacy Policy</a></li>
+                        </ul>
+                    </div>
+                </footer>
+            </main>
+        </div>
 
         <script src="vendored/jquery-3.4.1.min.js"></script>
         <script src="oauth.js"></script>

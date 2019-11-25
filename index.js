@@ -1,4 +1,5 @@
 const METADATA_HEADERS = ['Subject', 'Date', 'From'];
+const TIMEOUT = 1.0 * 1000;
 
 const authorizeButton = $('#authorizeButton');
 const signoutButton = $('#signoutButton');
@@ -6,7 +7,29 @@ const signoutButton = $('#signoutButton');
 const errorPre = $('#errorPre');
 const resultsTable = $('#resultsTable');
 
-let allMessages = [];
+let COLLEGE_DATA = [];
+let MESSAGE_DATA = [];
+
+function loadCollegeData() {
+    return fetch('https://raw.githubusercontent.com/kajchang/USNews-College-Scraper/master/data-detailed.csv')
+        .then(response => response.text())
+        .then(text => {
+            const lines = text.split('\n');
+            const headers = lines[0].split(',');
+            for (let line of lines.slice(1)) {
+                const cells = line.split(',');
+                COLLEGE_DATA.push(headers.reduce((acc, cur, i) => ({
+                    ...acc,
+                    [cur]: cells[i]
+                }), {}));
+            }
+            console.log('Loaded College Data!');
+        })
+        .catch(error => {
+            handleError(error);
+            setTimeout(loadCollegeData, TIMEOUT);
+        });
+}
 
 function initUI() {
     // Listen for sign-in state changes.
@@ -16,6 +39,8 @@ function initUI() {
     updateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get());
     authorizeButton.click(handleAuthClick);
     signoutButton.click(handleSignoutClick);
+
+    loadCollegeData();
 }
 
 function updateSigninStatus(isSignedIn) {
@@ -58,6 +83,7 @@ function insertResultRow(data, header=false) {
     const row = $('<tr/>');
     for (let datum of data) {
         const cell = $(header ? '<th/>' : '<td/>');
+        cell.addClass('mdl-data-table__cell--non-numeric');
         cell.text(datum);
         row.append(cell);
     }
@@ -89,28 +115,32 @@ function listMessages(pageToken, root=true) {
         .then(response => {
             const messages = response.result.messages;
             if (response.result.nextPageToken && root) {
-                setTimeout(() => listMessages(response.result.nextPageToken), 2500);
+                setTimeout(() => listMessages(response.result.nextPageToken), TIMEOUT);
             }
             return batchGetMessageInfo(messages);
         })
         .then(response => {
             const messages = Object.values(response.result);
             if (!messages.every(message => message.status === 200)) {
-                return setTimeout(() => listMessages(pageToken, false), 5000);
+                return setTimeout(() => listMessages(pageToken, false), TIMEOUT * 2);
             }
             console.log('Received ' + messages.length + ' Messages');
-            allMessages.push(...messages);
-            allMessages = allMessages.sort((a, b) => +new Date(b.result.payload.headers.find(header => header.name === 'Date').value) - +new Date(a.result.payload.headers.find(header => header.name === 'Date').value));
-            clearResultsTable();
-            insertResultRow(METADATA_HEADERS, true);
-            for (let message of allMessages) {
-                insertResultRow(message.result.payload.headers
-                    .sort((a, b) => METADATA_HEADERS.indexOf(a.name) - METADATA_HEADERS.indexOf(b.name))
-                    .map(header => header.value));
+            MESSAGE_DATA.push(...messages);
+            MESSAGE_DATA = MESSAGE_DATA.sort((a, b) => +new Date(b.result.payload.headers.find(header => header.name === 'Date').value) - +new Date(a.result.payload.headers.find(header => header.name === 'Date').value));
+            if (gapi.auth2.getAuthInstance().isSignedIn.get()) {
+                clearResultsTable();
+                insertResultRow(METADATA_HEADERS, true);
+                for (let message of MESSAGE_DATA) {
+                    insertResultRow(message.result.payload.headers
+                        .sort((a, b) => METADATA_HEADERS.indexOf(a.name) - METADATA_HEADERS.indexOf(b.name))
+                        .map(header => header.value));
+                }
             }
         })
         .catch(error => {
-            handleError(error);
-            setTimeout(() => listMessages(pageToken, false), 5000);
+            if (gapi.auth2.getAuthInstance().isSignedIn.get()) {
+                handleError(error);
+                setTimeout(() => listMessages(pageToken, false), TIMEOUT * 2);
+            }
         });
 }

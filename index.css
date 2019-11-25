@@ -1,0 +1,12 @@
+.mdl-layout__content {
+    display: flex;
+    flex-direction: column;
+}
+
+.mdl-layout__header {
+    background: rgb(240, 240, 240) !important;
+}
+
+pre {
+    margin: 0;
+}
