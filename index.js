@@ -58,13 +58,13 @@ function updateSigninStatus(isSignedIn) {
     if (isSignedIn) {
         authorizeButton.hide();
         signoutButton.show();
-        MESSAGE_DATA = [];
-        AGGREGATE_DATA = [];
-        dataLoaded.MESSAGE_DATA = false;
         loadMessages();
     } else {
         authorizeButton.show();
         signoutButton.hide();
+        dataLoaded.MESSAGE_DATA = false;
+        MESSAGE_DATA = [];
+        AGGREGATE_DATA = [];
         clearResultsTable();
     }
 }
