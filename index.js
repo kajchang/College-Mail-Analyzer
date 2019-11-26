@@ -10,29 +10,37 @@ const resultsTable = $('#resultsTable');
 let COLLEGE_DATA = [];
 let MESSAGE_DATA = [];
 
+let dataLoaded = {
+    COLLEGE_DATA: false,
+    MESSAGE_DATA: false
+};
+
 let pending = 0;
 
-function loadCollegeData() {
+// Called when a resource is fully loaded
+function emitLoaded(key) {
+    dataLoaded[key] = true;
+    console.log('Loaded ' + key + '!');
+    if (Object.values(dataLoaded).every(_ => _)) {
+        analyzeData();
+    }
+}
+
+// Loads College data
+function loadColleges() {
     return fetch('https://raw.githubusercontent.com/kajchang/USNews-College-Scraper/master/data-detailed.csv')
         .then(response => response.text())
         .then(text => {
-            const lines = text.split('\n');
-            const headers = lines[0].split(',');
-            for (let line of lines.slice(1)) {
-                const cells = line.split(',');
-                COLLEGE_DATA.push(headers.reduce((acc, cur, i) => ({
-                    ...acc,
-                    [cur]: cells[i]
-                }), {}));
-            }
-            console.log('Loaded College Data!');
+            COLLEGE_DATA = $.csv.toObjects(text);
+            emitLoaded('COLLEGE_DATA');
         })
         .catch(error => {
             handleError(error);
-            setTimeout(loadCollegeData, TIMEOUT);
+            setTimeout(loadColleges, TIMEOUT);
         });
 }
 
+// Called after gapi is done initializing
 function initUI() {
     // Listen for sign-in state changes.
     gapi.auth2.getAuthInstance().isSignedIn.listen(updateSigninStatus);
@@ -42,15 +50,17 @@ function initUI() {
     authorizeButton.click(handleAuthClick);
     signoutButton.click(handleSignoutClick);
 
-    loadCollegeData();
+    loadColleges();
 }
 
+// Called when auth2 status changes
 function updateSigninStatus(isSignedIn) {
     if (isSignedIn) {
         authorizeButton.hide();
         signoutButton.show();
-        allMessages = [];
-        listMessages();
+        MESSAGE_DATA = [];
+        dataLoaded.MESSAGE_DATA = false;
+        loadMessages();
     } else {
         authorizeButton.show();
         signoutButton.hide();
@@ -82,10 +92,16 @@ function clearResultsTable() {
 }
 
 function insertResultRow(data, header=false) {
+    if (header) {
+        this.nonNumerical = Object.values(data);
+        data = Object.keys(data);
+    }
     const row = $('<tr/>');
-    for (let datum of data) {
+    for (let [index, datum] of data.entries()) {
         const cell = $(header ? '<th/>' : '<td/>');
-        cell.addClass('mdl-data-table__cell--non-numeric');
+        if (this.nonNumerical[index]) {
+            cell.addClass('mdl-data-table__cell--non-numeric');
+        }
         cell.text(datum);
         row.append(cell);
     }
@@ -106,11 +122,12 @@ function batchGetMessageInfo(messages) {
     return batch;
 }
 
-function listMessages(pageToken, root=true) {
-    console.log('Fetching ' + pageToken);
-    if (root) {
+// Loads messages from a user's gmail account
+function loadMessages(pageToken, root=true) {
+    if (!pageToken && root) {
         pending++;
     }
+    console.log('Fetching ' + pageToken);
     gapi.client.gmail.users.messages.list({
         userId: 'me',
         q: '{from: college from: university from: admissions} AND {from:.org from:.edu} -from:collegeboard.org -from:summer after:12/30/18',
@@ -120,38 +137,27 @@ function listMessages(pageToken, root=true) {
         .then(response => {
             const messages = response.result.messages;
             if (response.result.nextPageToken && root) {
-                listMessages(response.result.nextPageToken);
+                pending++;
+                setTimeout(() => loadMessages(response.result.nextPageToken), TIMEOUT);
             }
             return batchGetMessageInfo(messages);
         })
         .then(response => {
-            pending--;
             const messages = Object.values(response.result);
             if (!messages.every(message => message.status === 200)) {
-                pending++;
-                return setTimeout(() => listMessages(pageToken, false), TIMEOUT * 2);
+                return setTimeout(() => loadMessages(pageToken, false), TIMEOUT * 2);
             }
             console.log('Received ' + messages.length + ' Messages');
-            if (pending === 0) {
-                console.log('Loaded Message Data!');
-            }
             MESSAGE_DATA.push(...messages);
-            MESSAGE_DATA = MESSAGE_DATA.sort((a, b) => +new Date(b.result.payload.headers.find(header => header.name === 'Date').value) - +new Date(a.result.payload.headers.find(header => header.name === 'Date').value));
-            if (gapi.auth2.getAuthInstance().isSignedIn.get()) {
-                clearResultsTable();
-                insertResultRow(METADATA_HEADERS, true);
-                for (let message of MESSAGE_DATA) {
-                    insertResultRow(message.result.payload.headers
-                        .sort((a, b) => METADATA_HEADERS.indexOf(a.name) - METADATA_HEADERS.indexOf(b.name))
-                        .map(header => header.value));
-                }
+            pending--;
+            if (pending === 0) {
+                emitLoaded('MESSAGE_DATA');
             }
         })
         .catch(error => {
             if (gapi.auth2.getAuthInstance().isSignedIn.get()) {
                 handleError(error);
-                pending++;
-                setTimeout(() => listMessages(pageToken, false), TIMEOUT * 2);
+                setTimeout(() => loadMessages(pageToken, false), TIMEOUT * 2);
             }
         });
 }
