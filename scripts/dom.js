@@ -10,7 +10,7 @@ const collegesCountUp = new CountUp('collegesCountUp', 0);
 messagesCountUp.start();
 collegesCountUp.start();
 
-const dataWorker = new Worker('analysis.js');
+const dataWorker = new Worker('scripts/analysis.js');
 dataWorker.onmessage = function (e) {
     const AGGREGATE_DATA = e.data;
     console.log('Aggregate Data: ', AGGREGATE_DATA);
