@@ -15,12 +15,41 @@
 .mdl-spinner {
     width: 100px;
     height: 100px;
+    margin: 25px;
     align-self: center;
 }
 
 #loader {
     display: flex;
     flex-direction: column;
+}
+
+#analysisDiv {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    align-content: space-around;
+}
+
+.card {
+    flex-basis: 19%;
+    width: 19%;
+    margin: 10px 0;
+}
+
+@media (max-width: 1100px) {
+    .card {
+        flex-basis: 31%;
+        width: 31%;
+    }
+}
+
+@media (max-width: 720px) {
+    .card {
+        flex-basis: 46%;
+        width: 46%;
+    }
 }
 
 pre {

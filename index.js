@@ -5,7 +5,7 @@ const authorizeButton = $('#authorizeButton');
 const signoutButton = $('#signoutButton');
 
 const errorPre = $('#errorPre');
-const resultsTable = $('#resultsTable');
+const analysisDiv = $('#analysisDiv');
 
 const loader = $('#loader');
 const messagesCountUp = new CountUp('messagesCountUp', 0);
@@ -24,11 +24,21 @@ let dataLoaded = {
 const dataWorker = new Worker('analysis.js');
 dataWorker.onmessage = function (e) {
     const AGGREGATE_DATA = e.data;
+    console.log('Aggregate Data: ', AGGREGATE_DATA);
     loader.hide();
-    clearResultsTable();
-    insertResultRow({'School Name': true, 'Messages Sent': false}, true);
-    for (let college of AGGREGATE_DATA) {
-        insertResultRow([college.college['institution.displayName'], college.messages.length]);
+    analysisDiv.empty();
+    for (let { college, messages } of AGGREGATE_DATA) {
+        createCard(
+            `${ college['institution.displayName'] }`,
+            college['institution.primaryPhotoCard'],
+            `${
+                college['institution.displayName'] }, located in ${
+                college['institution.city'] }, ${
+                college['institution.state'] }, is ranked ${
+                college['ranking.displayRank'] } in ${
+                college['institution.schoolType'].split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') } and sent you ${
+                messages.length } message${ messages.length > 1 ? 's' : '' }.`
+        ).appendTo(analysisDiv);
     }
 };
 dataWorker.onerror = dataWorker.onmessageerror = console.error;
@@ -90,11 +100,10 @@ function updateSigninStatus(isSignedIn) {
         signoutButton.hide();
         dataLoaded.MESSAGE_DATA = false;
         MESSAGE_DATA = [];
-        AGGREGATE_DATA = [];
         pending = 0;
         updateCountUps();
         loader.hide();
-        clearResultsTable();
+        analysisDiv.empty();
     }
 }
 
@@ -117,27 +126,18 @@ function handleError(error) {
     errorPre.text(message);
 }
 
-function clearResultsTable() {
-    resultsTable.find('thead').empty();
-    resultsTable.find('tbody').empty();
-}
-
-function insertResultRow(data, header=false) {
-    if (header) {
-        this.nonNumerical = Object.values(data);
-        data = Object.keys(data);
-    }
-    const row = $('<tr/>');
-    for (let [index, datum] of data.entries()) {
-        const cell = $(header ? '<th/>' : '<td/>');
-        if (this.nonNumerical[index]) {
-            cell.addClass('mdl-data-table__cell--non-numeric');
-        }
-        cell.text(datum);
-        row.append(cell);
-    }
-    const el = resultsTable.find(header ? 'thead' : 'tbody');
-    el.append(row);
+function createCard(title, image, description) {
+    return $(`
+        <div class="mdl-card mdl-shadow--2dp card">
+            <div class="mdl-card__title" style="
+                background: url('${ image }');
+                background-size: cover; height: 150px; color: ${ image ? 'white' : 'inherit' };"
+            >
+                <h2 class="mdl-card__title-text">${ title }</h2>
+            </div>
+            <div class="mdl-card__supporting-text">${ description }</div>
+        </div>
+    `);
 }
 
 function batchGetMessageInfo(messages) {
