@@ -1,6 +1,7 @@
 .mdl-layout__content {
     display: flex;
     flex-direction: column;
+    align-content: center;
 }
 
 .mdl-layout__header {
@@ -19,7 +20,6 @@
 
 #loader {
     display: flex;
-    align-self: center;
     flex-direction: column;
 }
 

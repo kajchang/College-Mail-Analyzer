@@ -21,6 +21,18 @@ let dataLoaded = {
     MESSAGE_DATA: false
 };
 
+const dataWorker = new Worker('analysis.js');
+dataWorker.onmessage = function (e) {
+    const AGGREGATE_DATA = e.data;
+    loader.hide();
+    clearResultsTable();
+    insertResultRow({'School Name': true, 'Messages Sent': false}, true);
+    for (let college of AGGREGATE_DATA) {
+        insertResultRow([college.college['institution.displayName'], college.messages.length]);
+    }
+};
+dataWorker.onerror = dataWorker.onmessageerror = console.error;
+
 let pending = 0;
 
 // Called when a resource is fully loaded
@@ -28,8 +40,7 @@ function emitLoaded(key) {
     dataLoaded[key] = true;
     console.log('Loaded ' + key + '!');
     if (Object.values(dataLoaded).every(_ => _)) {
-        loader.hide();
-        analyzeData();
+        dataWorker.postMessage({ COLLEGE_DATA, MESSAGE_DATA });
     }
 }
 

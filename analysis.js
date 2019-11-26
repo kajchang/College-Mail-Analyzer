@@ -1,18 +1,23 @@
-let AGGREGATE_DATA = [];
+onmessage = function (e) {
+    const data = e.data;
+    postMessage(analyzeData(data.COLLEGE_DATA, data.MESSAGE_DATA));
+};
 
 const getHeader = (headers, name) => headers.find(header => header.name === name).value;
 
 // Tries to identify the college the message is from
-function findCollege(message) {
-    const From = getHeader(message.result.payload.headers, 'From');
-    const shortcuts = {
-        'West Point Admissions <Admissions@usma-westpoint.org>': 'United States Military Academy'
-    };
-    if (shortcuts[From]) {
-        return COLLEGE_DATA.find(datum => datum['institution.displayName'] === shortcuts[From])
+function findCollege(from, COLLEGE_DATA) {
+    if (!this.cache) {
+        this.cache = {
+            'West Point Admissions <Admissions@usma-westpoint.org>': COLLEGE_DATA.find(datum => datum['institution.displayName'] === 'United States Military Academy')
+        };
     }
+    if (this.cache[from]) {
+        return this.cache[from];
+    }
+
     let college;
-    let match = /<[A-z0-9.-]+@([A-z0-9.-]+\.[A-z]+)>/g.exec(From);
+    let match = /<[A-z0-9.-]+@([A-z0-9.-]+\.[A-z]+)>/g.exec(from);
     if (match) {
         const domainSegments = match[1].split('.');
         const domainName = domainSegments.slice(domainSegments.length - 2).join('.');
@@ -26,7 +31,7 @@ function findCollege(message) {
         });
     }
     if (!college) {
-        match = /"?([A-z&',\- ]+)"? /.exec(From);
+        match = /"?([A-z&',\- ]+)"? /.exec(from);
         if (match) {
             let schoolName = match[1];
             for (let extra of ['Admissions', 'Admission', 'Undergraduate', 'Summer Session', 'Office of', 'The']) {
@@ -53,13 +58,15 @@ function findCollege(message) {
             }
         }
     }
+    this.cache[from] = college;
     return college;
 }
 
-function analyzeData() {
-    console.log('Starting Data Analysis!');
+function analyzeData(COLLEGE_DATA, MESSAGE_DATA) {
+    let AGGREGATE_DATA = [];
+    console.log('Starting Data Analysis in Web Worker!');
     for (let message of MESSAGE_DATA) {
-        const college = findCollege(message);
+        const college = findCollege(getHeader(message.result.payload.headers, 'From'), COLLEGE_DATA);
         if (!college) {
             console.log('Not confident about ' + getHeader(message.result.payload.headers, 'From'));
             continue;
@@ -75,9 +82,6 @@ function analyzeData() {
         match.messages.push(message);
     }
     AGGREGATE_DATA = AGGREGATE_DATA.sort((a, b) => b.messages.length - a.messages.length);
-    clearResultsTable();
-    insertResultRow({'School Name': true, 'Messages Sent': false}, true);
-    for (let college of AGGREGATE_DATA) {
-        insertResultRow([college.college['institution.displayName'], college.messages.length]);
-    }
+    console.log('Finished Data Analysis in Web Worker!');
+    return AGGREGATE_DATA;
 }
