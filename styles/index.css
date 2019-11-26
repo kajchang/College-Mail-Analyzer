@@ -8,6 +8,10 @@
     background: rgb(240, 240, 240) !important;
 }
 
+.mdl-mini-footer {
+    flex-shrink: 0;
+}
+
 .mdl-layout-title {
     flex-shrink: 1;
 }
@@ -30,6 +34,7 @@
     flex-wrap: wrap;
     justify-content: space-around;
     align-content: space-around;
+    flex-shrink: 0;
 }
 
 .card {

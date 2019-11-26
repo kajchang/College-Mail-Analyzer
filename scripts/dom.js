@@ -24,7 +24,7 @@ dataWorker.onmessage = function (e) {
                 college['institution.displayName'] }, located in ${
                 college['institution.city'] }, ${
                 college['institution.state'] }, is ranked ${
-                college['ranking.displayRank'] } in ${
+                college['ranking.displayRank'] }${ college['ranking.isTied'] === 'True' ? ' (Tied)' : '' } in ${
                 college['institution.schoolType'].split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') } and sent you ${
                 messages.length } message${ messages.length > 1 ? 's' : '' }.`
         ).appendTo(analysisDiv);
