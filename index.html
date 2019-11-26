@@ -26,6 +26,8 @@
                 </header>
             </div>
             <main class="mdl-layout__content">
+                <div class="mdl-layout-spacer"></div>
+
                 <pre id="errorPre"></pre>
 
                 <table id="resultsTable" class="mdl-data-table mdl-js-data-table">
@@ -33,7 +35,15 @@
                     <tbody></tbody>
                 </table>
 
-                <div class="mdl-layout-spacer"></div>
+                <div id="loader" style="display: none;">
+                    <div class="mdl-spinner mdl-js-spinner is-active"></div>
+                    <span class="mdl-chip" style="align-self: center;">
+                        <span id="loadingSpan" class="mdl-chip__text">Loaded <span id="messagesCountUp">0</span> Messages and <span id="collegesCountUp">0</span> Colleges...</span>
+                    </span>
+                </div>
+
+                <div class="mdl-layout-spacer" style="flex-grow: 2;"></div>
+
                 <footer class="mdl-mini-footer">
                     <div class="mdl-mini-footer__left-section">
                         <div class="mdl-logo">College Mail Analyzer</div>
@@ -47,6 +57,7 @@
 
         <script src="vendored/jquery-3.4.1.min.js"></script>
         <script src="vendored/jquery.csv.min.js"></script>
+        <script src="vendored/countUp.withPolyfill.min.js"></script>
         <script src="oauth.js"></script>
         <script src="analysis.js"></script>
         <script src="index.js"></script>

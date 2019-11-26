@@ -7,6 +7,12 @@ const signoutButton = $('#signoutButton');
 const errorPre = $('#errorPre');
 const resultsTable = $('#resultsTable');
 
+const loader = $('#loader');
+const messagesCountUp = new CountUp('messagesCountUp', 0);
+const collegesCountUp = new CountUp('collegesCountUp', 0);
+messagesCountUp.start();
+collegesCountUp.start();
+
 let COLLEGE_DATA = [];
 let MESSAGE_DATA = [];
 
@@ -22,8 +28,14 @@ function emitLoaded(key) {
     dataLoaded[key] = true;
     console.log('Loaded ' + key + '!');
     if (Object.values(dataLoaded).every(_ => _)) {
+        loader.hide();
         analyzeData();
     }
+}
+
+function updateCountUps() {
+    messagesCountUp.update(MESSAGE_DATA.length);
+    collegesCountUp.update(COLLEGE_DATA.length);
 }
 
 // Loads College data
@@ -32,6 +44,7 @@ function loadColleges() {
         .then(response => response.text())
         .then(text => {
             COLLEGE_DATA = $.csv.toObjects(text);
+            updateCountUps();
             emitLoaded('COLLEGE_DATA');
         })
         .catch(error => {
@@ -59,12 +72,17 @@ function updateSigninStatus(isSignedIn) {
         authorizeButton.hide();
         signoutButton.show();
         loadMessages();
+        updateCountUps();
+        loader.show();
     } else {
         authorizeButton.show();
         signoutButton.hide();
         dataLoaded.MESSAGE_DATA = false;
         MESSAGE_DATA = [];
         AGGREGATE_DATA = [];
+        pending = 0;
+        updateCountUps();
+        loader.hide();
         clearResultsTable();
     }
 }
@@ -78,6 +96,7 @@ function handleSignoutClick() {
 }
 
 function handleError(error) {
+    console.error(error);
     let message;
     if (error instanceof Error) {
         message = error.toString();
@@ -131,7 +150,7 @@ function loadMessages(pageToken, root=true) {
     console.log('Fetching ' + pageToken);
     gapi.client.gmail.users.messages.list({
         userId: 'me',
-        q: '{from: college from: university from: admissions} AND {from:.org from:.edu} -from:collegeboard.org -from:summer after:12/30/18',
+        q: '{from: college from: university from: admissions} AND {from:.org from:.edu} -from:collegeboard.org -from:summer -from:precollege after:12/30/18',
         maxResults: 200,
         pageToken
     })
@@ -150,6 +169,7 @@ function loadMessages(pageToken, root=true) {
             }
             console.log('Received ' + messages.length + ' Messages');
             MESSAGE_DATA.push(...messages);
+            updateCountUps();
             pending--;
             if (pending === 0) {
                 emitLoaded('MESSAGE_DATA');

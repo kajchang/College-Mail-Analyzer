@@ -11,6 +11,18 @@
     flex-shrink: 1;
 }
 
+.mdl-spinner {
+    width: 100px;
+    height: 100px;
+    align-self: center;
+}
+
+#loader {
+    display: flex;
+    align-self: center;
+    flex-direction: column;
+}
+
 pre {
     margin: 0;
 }
