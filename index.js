@@ -1,5 +1,5 @@
 const METADATA_HEADERS = ['Subject', 'Date', 'From'];
-const TIMEOUT = 1.0 * 1000;
+const TIMEOUT = 2.5 * 1000;
 
 const authorizeButton = $('#authorizeButton');
 const signoutButton = $('#signoutButton');
@@ -9,6 +9,8 @@ const resultsTable = $('#resultsTable');
 
 let COLLEGE_DATA = [];
 let MESSAGE_DATA = [];
+
+let pending = 0;
 
 function loadCollegeData() {
     return fetch('https://raw.githubusercontent.com/kajchang/USNews-College-Scraper/master/data-detailed.csv')
@@ -106,6 +108,9 @@ function batchGetMessageInfo(messages) {
 
 function listMessages(pageToken, root=true) {
     console.log('Fetching ' + pageToken);
+    if (root) {
+        pending++;
+    }
     gapi.client.gmail.users.messages.list({
         userId: 'me',
         q: '{from: college from: university from: admissions} AND {from:.org from:.edu} -from:collegeboard.org -from:summer after:12/30/18',
@@ -115,16 +120,21 @@ function listMessages(pageToken, root=true) {
         .then(response => {
             const messages = response.result.messages;
             if (response.result.nextPageToken && root) {
-                setTimeout(() => listMessages(response.result.nextPageToken), TIMEOUT);
+                listMessages(response.result.nextPageToken);
             }
             return batchGetMessageInfo(messages);
         })
         .then(response => {
+            pending--;
             const messages = Object.values(response.result);
             if (!messages.every(message => message.status === 200)) {
+                pending++;
                 return setTimeout(() => listMessages(pageToken, false), TIMEOUT * 2);
             }
             console.log('Received ' + messages.length + ' Messages');
+            if (pending === 0) {
+                console.log('Loaded Message Data!');
+            }
             MESSAGE_DATA.push(...messages);
             MESSAGE_DATA = MESSAGE_DATA.sort((a, b) => +new Date(b.result.payload.headers.find(header => header.name === 'Date').value) - +new Date(a.result.payload.headers.find(header => header.name === 'Date').value));
             if (gapi.auth2.getAuthInstance().isSignedIn.get()) {
@@ -140,6 +150,7 @@ function listMessages(pageToken, root=true) {
         .catch(error => {
             if (gapi.auth2.getAuthInstance().isSignedIn.get()) {
                 handleError(error);
+                pending++;
                 setTimeout(() => listMessages(pageToken, false), TIMEOUT * 2);
             }
         });
