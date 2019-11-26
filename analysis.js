@@ -4,6 +4,10 @@ onmessage = function (e) {
 };
 
 const getHeader = (headers, name) => headers.find(header => header.name === name).value;
+const getTLD = domain => {
+    const segments = domain.split('.');
+    return segments.slice(segments.length - 2).join('.');
+};
 
 // Tries to identify the college the message is from
 function findCollege(from, COLLEGE_DATA) {
@@ -19,14 +23,12 @@ function findCollege(from, COLLEGE_DATA) {
     let college;
     let match = /<[A-z0-9.-]+@([A-z0-9.-]+\.[A-z]+)>/g.exec(from);
     if (match) {
-        const domainSegments = match[1].split('.');
-        const domainName = domainSegments.slice(domainSegments.length - 2).join('.');
+        const domainName = getTLD(match[1]);
         college = COLLEGE_DATA.find(datum => {
             if (!datum['School Website']) return false;
             const match = /([A-z0-9.-]+\.[A-z]+)/g.exec(datum['School Website']);
             if (!match) return false;
-            const schoolDomainSegments = match[1].split('.');
-            const schoolDomainName = schoolDomainSegments.slice(schoolDomainSegments.length - 2).join('.');
+            const schoolDomainName = getTLD(match[1]);
             return schoolDomainName === domainName;
         });
     }

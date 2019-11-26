@@ -16,6 +16,6 @@ function initClient() {
         discoveryDocs: DISCOVERY_DOCS,
         scope: SCOPES
     })
-        .then(initUI)
+        .then(startLoad)
         .catch(handleError);
 }
