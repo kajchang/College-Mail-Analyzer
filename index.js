@@ -59,6 +59,7 @@ function updateSigninStatus(isSignedIn) {
         authorizeButton.hide();
         signoutButton.show();
         MESSAGE_DATA = [];
+        AGGREGATE_DATA = [];
         dataLoaded.MESSAGE_DATA = false;
         loadMessages();
     } else {
