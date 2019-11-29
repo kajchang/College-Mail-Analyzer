@@ -49,8 +49,7 @@
 
 .school-card > .mdl-card__title {
     height: 150px;
-    background-position: center;
-    background-size: cover;
+    background-size: cover !important;
 }
 
 .summary-card {

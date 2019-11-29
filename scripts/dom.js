@@ -11,6 +11,8 @@ const loader = d3.select('#loader');
 const loadingCountUps = d3.selectAll('.loading-count-up')
     .data([MESSAGE_DATA, COLLEGE_DATA]);
 
+const totalEmails = d3.select('#total-emails');
+
 const dataWorker = new Worker('scripts/analysis.js');
 dataWorker.onmessage = function (e) {
     const AGGREGATE_DATA = e.data;
@@ -44,22 +46,17 @@ dataWorker.onmessage = function (e) {
             d.college['institution.schoolType'].split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') } and sent you ${
             d.messages.length } message${ d.messages.length > 1 ? 's' : '' }.`);
 
-    /*
-    // Summary
-    summaryDiv.empty();
-    createImageCard(
-        `
-            <span style="margin: auto;">
-                <i class="material-icons">school</i><span id="emails-count-up"></span><span style="white-space: pre;"> Emails</span>
-            </span>
-        `,
-        '/images/gmail.png',
-        ``,
-        'summary-card'
-    ).appendTo(summaryDiv);
-    const emailsCountUp = new CountUp('emails-count-up', AGGREGATE_DATA.reduce((acc, cur) => acc + cur.messages.length, 0));
-    emailsCountUp.start();
-    */
+    d3.select('#total-emails')
+        .data([MESSAGE_DATA])
+        .transition()
+        .tween('text', function (d) {
+            const selection = d3.select(this);
+            const start = d3.select(this).text();
+            const interpolator = d3.interpolateNumber(start, d.length);
+
+            return t => selection.text(Math.round(interpolator(t)));
+        })
+        .duration(1000);
 
     analysisTabs.style('display', 'block');
 };

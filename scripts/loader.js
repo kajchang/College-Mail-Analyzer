@@ -60,9 +60,10 @@ function updateSigninStatus(isSignedIn) {
         authorizeButton.style('display', 'block');
         signoutButton.style('display', 'none');
         dataLoaded.MESSAGE_DATA = false;
-        MESSAGE_DATA = [];
+        MESSAGE_DATA.length = 0;
         pending = 0;
-        updateCountUps();
+        loadingCountUps.text(0);
+        totalEmails.text(0);
         loader.style('display', 'none');
         analysisTabs.style('display', 'none');
     }
