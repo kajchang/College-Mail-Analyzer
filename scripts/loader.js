@@ -18,8 +18,8 @@ function startLoad() {
 
     // Handle the initial sign-in state.
     updateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get());
-    authorizeButton.click(handleAuthClick);
-    signoutButton.click(handleSignoutClick);
+    authorizeButton.on('click', handleAuthClick);
+    signoutButton.on('click', handleSignoutClick);
 
     loadColleges();
 }
@@ -38,7 +38,7 @@ function loadColleges() {
     return fetch('https://raw.githubusercontent.com/kajchang/USNews-College-Scraper/master/data-detailed.csv')
         .then(response => response.text())
         .then(text => {
-            COLLEGE_DATA = $.csv.toObjects(text);
+            COLLEGE_DATA.push(...d3.csvParse(text));
             updateCountUps();
             emitLoaded('COLLEGE_DATA');
         })
@@ -51,20 +51,20 @@ function loadColleges() {
 /// called when auth2 status changes
 function updateSigninStatus(isSignedIn) {
     if (isSignedIn) {
-        authorizeButton.hide();
-        signoutButton.show();
+        authorizeButton.style('display', 'none');
+        signoutButton.style('display', 'block');
         loadMessages();
         updateCountUps();
-        loader.show();
+        loader.style('display', 'flex');
     } else {
-        authorizeButton.show();
-        signoutButton.hide();
+        authorizeButton.style('display', 'block');
+        signoutButton.style('display', 'none');
         dataLoaded.MESSAGE_DATA = false;
         MESSAGE_DATA = [];
         pending = 0;
         updateCountUps();
-        loader.hide();
-        analysisDiv.empty();
+        loader.style('display', 'none');
+        analysisTabs.style('display', 'none');
     }
 }
 

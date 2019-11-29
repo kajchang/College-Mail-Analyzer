@@ -19,8 +19,8 @@
                         <span class="mdl-layout-title">College Mail Analyzer</span>
                         <div class="mdl-layout-spacer"></div>
                         <nav class="mdl-navigation">
-                            <button id="authorizeButton" class="mdl-button mdl-js-button mdl-button--raised" style="display: none;">Authorize</button>
-                            <button id="signoutButton" class="mdl-button mdl-js-button mdl-button--raised" style="display: none;">Sign Out</button>
+                            <button id="authorize-button" class="mdl-button mdl-js-button mdl-button--raised" style="display: none;">Authorize</button>
+                            <button id="signout-button" class="mdl-button mdl-js-button mdl-button--raised" style="display: none;">Sign Out</button>
                         </nav>
                     </div>
                 </header>
@@ -28,14 +28,27 @@
             <main class="mdl-layout__content">
                 <div class="mdl-layout-spacer"></div>
 
-                <pre id="errorPre"></pre>
+                <pre id="error-pre"></pre>
 
-                <div id="analysisDiv"></div>
+                <div class="mdl-tabs mdl-js-tabs mdl-js-ripple-effect" id="analysis-tabs" style="display: none;">
+                    <div class="mdl-tabs__tab-bar">
+                        <!-- <a href="#summary-panel" class="mdl-tabs__tab is-active">Summary</a> -->
+                        <a href="#schools-panel" class="mdl-tabs__tab is-active">Schools</a>
+                    </div>
+                    <!--
+                    <div class="mdl-tabs__panel is-active" id="summary-panel">
+                        <div id="summary-div"></div>
+                    </div>
+                    -->
+                    <div class="mdl-tabs__panel is-active" id="schools-panel">
+                        <div id="schools-div"></div>
+                    </div>
+                </div>
 
                 <div id="loader" style="display: none;">
                     <div class="mdl-spinner mdl-js-spinner is-active"></div>
                     <span class="mdl-chip" style="align-self: center;">
-                        <span id="loadingSpan" class="mdl-chip__text">Loaded <span id="messagesCountUp">0</span> Messages and <span id="collegesCountUp">0</span> Colleges...</span>
+                        <span id="loading-span" class="mdl-chip__text">Loaded <span class="loading-count-up">0</span> Messages and <span class="loading-count-up">0</span> Colleges...</span>
                     </span>
                 </div>
 
@@ -54,9 +67,8 @@
             </main>
         </div>
 
-        <script src="vendored/jquery-3.4.1.min.js"></script>
-        <script src="vendored/jquery.csv.min.js"></script>
-        <script src="vendored/countUp.withPolyfill.min.js"></script>
+        <script src="https://d3js.org/d3.v5.min.js"></script>
+        <script src="https://d3js.org/d3-dsv.v1.min.js"></script>
         <script src="scripts/oauth.js"></script>
         <script src="scripts/loader.js"></script>
         <script src="scripts/dom.js"></script>

@@ -1,40 +1,81 @@
-const authorizeButton = $('#authorizeButton');
-const signoutButton = $('#signoutButton');
+const authorizeButton = d3.select('#authorize-button');
+const signoutButton = d3.select('#signout-button');
 
-const errorPre = $('#errorPre');
-const analysisDiv = $('#analysisDiv');
+const errorPre = d3.select('#error-pre');
+const analysisTabs = d3.select('#analysis-tabs');
 
-const loader = $('#loader');
-const messagesCountUp = new CountUp('messagesCountUp', 0);
-const collegesCountUp = new CountUp('collegesCountUp', 0);
-messagesCountUp.start();
-collegesCountUp.start();
+// const summaryDiv = d3.select('#summary-div');
+const schoolsDiv = d3.select('#schools-div');
+
+const loader = d3.select('#loader');
+const loadingCountUps = d3.selectAll('.loading-count-up')
+    .data([MESSAGE_DATA, COLLEGE_DATA]);
 
 const dataWorker = new Worker('scripts/analysis.js');
 dataWorker.onmessage = function (e) {
     const AGGREGATE_DATA = e.data;
     console.log('Aggregate Data: ', AGGREGATE_DATA);
-    loader.hide();
-    analysisDiv.empty();
-    for (let { college, messages } of AGGREGATE_DATA) {
-        createCard(
-            `${ college['institution.displayName'] }`,
-            college['institution.primaryPhotoCard'],
-            `${
-                college['institution.displayName'] }, located in ${
-                college['institution.city'] }, ${
-                college['institution.state'] }, is ranked ${
-                college['ranking.displayRank'] }${ college['ranking.isTied'] === 'True' ? ' (Tied)' : '' } in ${
-                college['institution.schoolType'].split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') } and sent you ${
-                messages.length } message${ messages.length > 1 ? 's' : '' }.`
-        ).appendTo(analysisDiv);
-    }
+    loader.style('display', 'none');
+
+    const schoolCards = schoolsDiv
+        .selectAll('div')
+        .data(AGGREGATE_DATA)
+        .enter()
+        .append('div')
+        .attr('class', 'mdl-card mdl-shadow--2dp school-card');
+
+    schoolCards
+        .append('div')
+        .attr('class', 'mdl-card__title')
+        .style('background', d => `url('${ d.college['institution.primaryPhotoCard'] }')`)
+        .style('color', d => d.college['institution.primaryPhotoCard'] ? 'white' : 'inherit')
+        .append('h2')
+        .attr('class', 'mdl-card__title-text')
+        .text(d => d.college['institution.displayName']);
+
+    schoolCards
+        .append('div')
+        .attr('class', 'mdl-card__supporting-text')
+        .text(d => `${
+            d.college['institution.displayName'] }, located in ${
+            d.college['institution.city'] }, ${
+            d.college['institution.state'] }, is ranked ${
+            d.college['ranking.displayRank'] }${ d.college['ranking.isTied'] === 'True' ? ' (Tied)' : '' } in ${
+            d.college['institution.schoolType'].split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') } and sent you ${
+            d.messages.length } message${ d.messages.length > 1 ? 's' : '' }.`);
+
+    /*
+    // Summary
+    summaryDiv.empty();
+    createImageCard(
+        `
+            <span style="margin: auto;">
+                <i class="material-icons">school</i><span id="emails-count-up"></span><span style="white-space: pre;"> Emails</span>
+            </span>
+        `,
+        '/images/gmail.png',
+        ``,
+        'summary-card'
+    ).appendTo(summaryDiv);
+    const emailsCountUp = new CountUp('emails-count-up', AGGREGATE_DATA.reduce((acc, cur) => acc + cur.messages.length, 0));
+    emailsCountUp.start();
+    */
+
+    analysisTabs.style('display', 'block');
 };
 dataWorker.onerror = dataWorker.onmessageerror = console.error;
 
 function updateCountUps() {
-    messagesCountUp.update(MESSAGE_DATA.length);
-    collegesCountUp.update(COLLEGE_DATA.length);
+    loadingCountUps
+        .transition()
+        .tween('text', function (d) {
+            const selection = d3.select(this);
+            const start = d3.select(this).text();
+            const interpolator = d3.interpolateNumber(start, d.length);
+
+            return t => selection.text(Math.round(interpolator(t)));
+        })
+        .duration(1000);
 }
 
 function handleError(error) {
@@ -46,18 +87,4 @@ function handleError(error) {
         message = JSON.stringify(error, null, 2);
     }
     errorPre.text(message);
-}
-
-function createCard(title, image, description) {
-    return $(`
-        <div class="mdl-card mdl-shadow--2dp card">
-            <div class="mdl-card__title" style="
-                background: url('${ image }');
-                background-size: cover; height: 150px; color: ${ image ? 'white' : 'inherit' };"
-            >
-                <h2 class="mdl-card__title-text">${ title }</h2>
-            </div>
-            <div class="mdl-card__supporting-text">${ description }</div>
-        </div>
-    `);
 }
