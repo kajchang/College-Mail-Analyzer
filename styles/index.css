@@ -60,13 +60,12 @@
 }
 
 .summary-card > .mdl-card__title {
-    height: 100% !important;
     color: inherit !important;
 }
 
 .summary-card > .mdl-card__title > .mdl-card__title-text {
     background: rgb(240, 240, 240);
-    padding: 25px;
+    padding: 15px 25px;
     width: calc(100% - 50px);
 }
 

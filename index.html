@@ -38,8 +38,14 @@
                     <div class="mdl-tabs__panel is-active" id="summary-panel">
                         <div id="summary-div">
                             <div class="mdl-card mdl-shadow--2dp summary-card">
-                                <div class="mdl-card__title" style="background: url('/images/gmail.png') center; background-size: cover;">
-                                    <h2 class="mdl-card__title-text"><i class="material-icons">mail</i><span id="total-emails"></span><span style="white-space: pre;"> College Emails</span></h2>
+                                <div class="mdl-card__title" style="background: url('/images/gmail.png') center; background-size: cover; height: 100%;">
+                                    <h2 class="mdl-card__title-text"><i class="material-icons">mail</i><span id="total-emails">0</span><span style="white-space: pre;"> College Emails</span></h2>
+                                </div>
+                            </div>
+                            <div class="mdl-card mdl-shadow--2dp summary-card">
+                                <svg id="school-type-pie"></svg>
+                                <div class="mdl-card__title">
+                                    <h2 class="mdl-card__title-text"><i class="material-icons">donut_large</i>Emails By School Type</h2>
                                 </div>
                             </div>
                         </div>
@@ -73,6 +79,8 @@
 
         <script src="https://d3js.org/d3.v5.min.js"></script>
         <script src="https://d3js.org/d3-dsv.v1.min.js"></script>
+        <script src="https://d3js.org/d3-path.v1.min.js"></script>
+        <script src="https://d3js.org/d3-shape.v1.min.js"></script>
         <script src="scripts/oauth.js"></script>
         <script src="scripts/loader.js"></script>
         <script src="scripts/dom.js"></script>

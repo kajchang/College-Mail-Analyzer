@@ -1,12 +1,9 @@
 const METADATA_HEADERS = ['Subject', 'Date', 'From'];
 const TIMEOUT = 2.5 * 1000;
 
-let COLLEGE_DATA = [];
-let MESSAGE_DATA = [];
-
-let dataLoaded = {
-    COLLEGE_DATA: false,
-    MESSAGE_DATA: false
+const DATA = {
+    COLLEGE_DATA: [],
+    MESSAGE_DATA: []
 };
 
 let pending = 0;
@@ -24,13 +21,24 @@ function startLoad() {
     loadColleges();
 }
 
-// Called when a resource is fully loaded
+/*
+Data Loading
+*/
+
+// Called when a datum is fully loaded
 function emitLoaded(key) {
-    dataLoaded[key] = true;
+    DATA[key].loaded = true;
     console.log('Loaded ' + key + '!');
-    if (Object.values(dataLoaded).every(_ => _)) {
-        dataWorker.postMessage({ COLLEGE_DATA, MESSAGE_DATA });
+    if (Object.values(DATA).every(datum => datum.loaded)) {
+        dataWorker.postMessage(DATA);
     }
+}
+
+// Called to unload a datum
+function unload(key) {
+    DATA[key].loaded = false;
+    console.log('Unloaded ' + key + '!');
+    DATA[key].length = 0;
 }
 
 // loads College data
@@ -38,7 +46,7 @@ function loadColleges() {
     return fetch('https://raw.githubusercontent.com/kajchang/USNews-College-Scraper/master/data-detailed.csv')
         .then(response => response.text())
         .then(text => {
-            COLLEGE_DATA.push(...d3.csvParse(text));
+            DATA.COLLEGE_DATA.push(...d3.csvParse(text));
             updateCountUps();
             emitLoaded('COLLEGE_DATA');
         })
@@ -59,8 +67,7 @@ function updateSigninStatus(isSignedIn) {
     } else {
         authorizeButton.style('display', 'block');
         signoutButton.style('display', 'none');
-        dataLoaded.MESSAGE_DATA = false;
-        MESSAGE_DATA.length = 0;
+        unload('MESSAGE_DATA');
         pending = 0;
         loadingCountUps.text(0);
         totalEmails.text(0);
@@ -116,7 +123,7 @@ function loadMessages(pageToken, root=true) {
                 return setTimeout(() => loadMessages(pageToken, false), TIMEOUT * 2);
             }
             console.log('Received ' + messages.length + ' Messages');
-            MESSAGE_DATA.push(...messages);
+            DATA.MESSAGE_DATA.push(...messages);
             updateCountUps();
             pending--;
             if (pending === 0) {
