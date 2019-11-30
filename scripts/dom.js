@@ -41,19 +41,24 @@ dataWorker.onmessage = function (e) {
     loader.style('display', 'none');
 
     schoolsDiv
-        .selectAll('div')
+        .selectAll('.school-card')
         .data(AGGREGATE_DATA)
-        .join('div')
-        .attr('class', 'mdl-card mdl-shadow--2dp school-card')
-        .call(card => card.append('div')
-            .attr('class', 'mdl-card__title')
+        .join(
+            enter => enter.append('div')
+                .attr('class', 'mdl-card mdl-shadow--2dp school-card')
+                .call(card => card.append('div')
+                    .attr('class', 'mdl-card__title')
+                    .append('h2')
+                    .attr('class', 'mdl-card__title-text'))
+                .call(card => card.append('div')
+                    .attr('class', 'mdl-card__supporting-text'))
+        )
+        .call(card => card.select('.mdl-card__title')
             .style('background', d => `url('${ d.college['institution.primaryPhotoCard'] }')`)
-            .style('color', d => d.college['institution.primaryPhotoCard'] ? 'white' : 'inherit')
-            .append('h2')
-            .attr('class', 'mdl-card__title-text')
+            .style('color', d => d.college['institution.primaryPhotoCard'] ? 'white' : 'inherit'))
+        .call(card => card.select('.mdl-card__title-text')
             .text(d => d.college['institution.displayName']))
-        .call(card => card.append('div')
-            .attr('class', 'mdl-card__supporting-text')
+        .call(card => card.select('.mdl-card__supporting-text')
             .text(d => `${
                 d.college['institution.displayName'] }, located in ${
                 d.college['institution.city'] }, ${
@@ -97,7 +102,7 @@ dataWorker.onmessage = function (e) {
 
     schoolTypePie
         .attr('viewBox', [-width / 2, -height / 2, width, height])
-        .append('g')
+        .select('g')
         .attr('stroke', 'white')
         .selectAll('path')
         .data(arcs)
@@ -112,7 +117,7 @@ dataWorker.onmessage = function (e) {
         .join('span')
         .attr('class', 'mdl-tooltip mdl-tooltip--top')
         .attr('for', d => d.data.schoolType.concat('-arc'))
-        .html(d => `${ d.data.schoolType.split('-').map(word => word.capitalize()).join(' ') }:<br/>${ d.data.messages } Emails`);
+        .html(d => `${ d.data.schoolType.split('-').map(word => word.capitalize()).join(' ') }<br/>${ d.data.messages } Emails`);
 
     componentHandler.upgradeDom(null, 'mdl-tooltip');
 
